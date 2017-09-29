@@ -16,7 +16,7 @@ module Paperclip
                  else
                    generate_from_proc(style)
                  end
-          path
+          "/" + path
         end
 
         private

@@ -1,4 +1,5 @@
-require "dropbox_sdk"
+require "dropbox_sdk" #TODO: remove when replaced
+require "dropbox_api"
 require "active_support/core_ext/hash/keys"
 require "paperclip/storage/dropbox/path_generator"
 require "paperclip/storage/dropbox/generator_factory"
@@ -15,14 +16,12 @@ module Paperclip
           @options[:dropbox_visibility] ||= "public"
 
           @path_generator = PathGenerator.new(self, @options)
-
-          #dropbox_client # Force creation of dropbox_client
         end
       end
 
       def flush_writes
         @queued_for_write.each do |style, file|
-          dropbox_client.put_file(path(style), file.read)
+          dropbox_client_v2.upload(path(style), file.read)
         end
         after_flush_writes
         @queued_for_write.clear
@@ -30,7 +29,7 @@ module Paperclip
 
       def flush_deletes
         @queued_for_delete.each do |path|
-          dropbox_client.file_delete(path)
+          dropbox_client_v2.delete(path)
         end
         @queued_for_delete.clear
       end
@@ -49,13 +48,13 @@ module Paperclip
 
       def copy_to_local_file(style = default_style, destination_path)
         File.open(destination_path, "wb") do |file|
-          file.write(dropbox_client.get_file(path(style)))
+          file.write(dropbox_client_v2.download(path(style)))
         end
       end
 
       def exists?(style = default_style)
         return false if not present?
-        metadata = dropbox_client.metadata(path(style))
+        metadata = dropbox_client_v2.get_metadata.to_hash(path(style))
         not metadata.nil? and not metadata["is_deleted"]
       rescue DropboxError
         false
@@ -69,6 +68,14 @@ module Paperclip
           DropboxClient.new(session, credentials[:access_type])
         end
       end
+
+      def dropbox_client_v2
+        @dropbox_client_v2 ||= begin
+          credentials = dropbox_credentials
+          DropboxApi::Client.new(credentials[:access_token])
+        end
+      end
+
 
       def dropbox_credentials
         @dropbox_credentials ||= begin

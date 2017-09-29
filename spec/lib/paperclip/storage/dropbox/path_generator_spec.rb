@@ -1,5 +1,7 @@
 require "spec_helper"
 
+#TODO:  paths need a leading '/'
+#
 describe Paperclip::Storage::Dropbox::PathGenerator do
   before do
     @options = {dropbox_credentials: CREDENTIALS[:app_folder]}
@@ -13,7 +15,7 @@ describe Paperclip::Storage::Dropbox::PathGenerator do
 
   describe "#generate" do
     it "defaults to filename" do
-      expect(new_post.attachment.path).to eq "photo.jpg"
+      expect(new_post.attachment.path).to eq "/photo.jpg"
     end
 
     context "when path is a string" do
@@ -22,7 +24,7 @@ describe Paperclip::Storage::Dropbox::PathGenerator do
       end
 
       it "interpolates with Paperclip's interpolator" do
-        expect(new_post.attachment.path(:medium)).to eq "medium/posts_photo.jpg"
+        expect(new_post.attachment.path(:medium)).to eq "/medium/posts_photo.jpg"
       end
     end
 
@@ -34,12 +36,12 @@ describe Paperclip::Storage::Dropbox::PathGenerator do
       end
 
       it "evaluates the proc in context of the instance" do
-        expect(new_post.attachment.path).to eq "original/photo.jpg"
+        expect(new_post.attachment.path).to eq "/original/photo.jpg"
       end
 
       it "appends the style if present" do
-        expect(new_post.attachment.path(:medium)).to eq "medium/photo_medium.jpg"
-        expect(new_post.attachment.path).to eq "original/photo.jpg"
+        expect(new_post.attachment.path(:medium)).to eq "/medium/photo_medium.jpg"
+        expect(new_post.attachment.path).to eq "/original/photo.jpg"
       end
     end
 

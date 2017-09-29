@@ -6,6 +6,7 @@ module Paperclip
       module GeneratorFactory
         def self.build_url_generator(storage, options)
           credentials = storage.try(:dropbox_credentials) || options[:dropbox_credentials]
+          #TODO: is app_folder a v1 concept?
           if credentials[:access_type] == "app_folder" || options[:dropbox_visibility] == "private"
             PrivateUrlGenerator.new(storage, options)
           elsif credentials[:access_type]
