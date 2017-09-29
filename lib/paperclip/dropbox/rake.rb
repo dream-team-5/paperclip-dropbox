@@ -1,4 +1,4 @@
-require "dropbox_sdk"
+require "dropbox_api"
 
 module Paperclip
   module Dropbox
@@ -6,34 +6,28 @@ module Paperclip
       extend self
 
       def authorize(app_key, app_secret, access_type)
-        session = create_new_session(app_key, app_secret)
+        authenticator = DropboxApi::Authenticator.new(app_key, app_secret)
 
-        puts "Visit this URL: #{session.get_authorize_url}"
-        print "And after you approved the authorization confirm it here (y/n): "
+        puts "Visit this URL: #{ authenticator.authorize_url}"
+        print "And after you approved the authorization enter the token here: "
+        code = STDIN.gets.strip
 
-        assert_answer!
-        session.get_access_token
-        dropbox_client = DropboxClient.new(session, access_type)
-        account_info = dropbox_client.account_info
+        auth_bearer = authenticator.get_token(code) #=> #<OAuth2::AccessToken ...>`
+        auth_bearer.token #=> "VofXAX8D..."
+
+        dropbox_client = DropboxApi::Client.new(auth_bearer.token)
+        account_info = dropbox_client.get_current_account
 
         puts <<-MESSAGE
 
 Authorization was successful. Here you go:
 
-access_token: #{session.access_token.key}
-access_token_secret: #{session.access_token.secret}
-user_id: #{account_info["uid"]}
+access_token: #{auth_bearer.token}
+user_id: #{account_info.to_hash["account_id"]}
+name: #{account_info.to_hash["name"]["display_name"]}
         MESSAGE
       end
 
-      def create_new_session(app_key, app_secret)
-        DropboxSession.new(app_key, app_secret)
-      end
-
-      def assert_answer!
-        answer = STDIN.gets.strip
-        exit if answer == "n"
-      end
     end
   end
 end
