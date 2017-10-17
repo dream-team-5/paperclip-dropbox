@@ -47,14 +47,16 @@ module Paperclip
 
       def copy_to_local_file(style = default_style, destination_path)
         File.open(destination_path, "wb") do |file|
-          file.write(dropbox_client_v2.download(path(style)))
+          dropbox_client_v2.download(path(style)) do |content|
+            file.write content
+          end
         end
       end
 
       def exists?(style = default_style)
         return false if not present?
-        metadata = dropbox_client_v2.get_metadata.to_hash(path(style))
-        not metadata.nil? and not metadata["is_deleted"]
+        metadata = dropbox_client_v2.get_metadata(path(style)).to_hash
+        not metadata.nil? and not metadata["is_deleted"] and metadata[".tag"] != "deleted"
       rescue DropboxApi::Errors::NotFoundError
         false
       end
