@@ -32,7 +32,7 @@ module Paperclip
           when String
             dropbox_client_v2.delete(path)  
           when Array
-            path.uniq.each do { |p| dropbox_client_v2.delete(p) }
+            path.uniq.each { |p| dropbox_client_v2.delete(p) }
           end
         end
         @queued_for_delete.clear
