@@ -28,7 +28,12 @@ module Paperclip
 
       def flush_deletes
         @queued_for_delete.each do |path|
-          dropbox_client_v2.delete(path)
+          case path
+          when String
+            dropbox_client_v2.delete(path)  
+          when Array
+            path.uniq.each do { |p| dropbox_client_v2.delete(p) }
+          end
         end
         @queued_for_delete.clear
       end
