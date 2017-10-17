@@ -55,7 +55,7 @@ module Paperclip
         return false if not present?
         metadata = dropbox_client_v2.get_metadata.to_hash(path(style))
         not metadata.nil? and not metadata["is_deleted"]
-      rescue DropboxError
+      rescue DropboxApi::Errors::NotFoundError
         false
       end
 
