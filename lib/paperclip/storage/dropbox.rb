@@ -1,4 +1,3 @@
-require "dropbox_sdk" #TODO: remove when replaced
 require "dropbox_api"
 require "active_support/core_ext/hash/keys"
 require "paperclip/storage/dropbox/path_generator"
@@ -60,20 +59,8 @@ module Paperclip
         false
       end
 
-      def dropbox_client
-        @dropbox_client ||= begin
-          credentials = dropbox_credentials
-          session = DropboxSession.new(credentials[:app_key], credentials[:app_secret])
-          session.set_access_token(credentials[:access_token], credentials[:access_token_secret])
-          DropboxClient.new(session, credentials[:access_type])
-        end
-      end
-
       def dropbox_client_v2
-        @dropbox_client_v2 ||= begin
-          credentials = dropbox_credentials
-          DropboxApi::Client.new(credentials[:access_token])
-        end
+        @dropbox_client_v2 ||= DropboxApi::Client.new(dropbox_credentials[:access_token])
       end
 
 
